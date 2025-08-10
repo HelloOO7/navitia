@@ -30,6 +30,7 @@ www.navitia.io
 
 #pragma once
 #include <bitset>
+#include <cstdint>
 
 namespace navitia {
 namespace type {

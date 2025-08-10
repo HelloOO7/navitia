@@ -37,6 +37,7 @@ www.navitia.io
 #include <unordered_set>
 #include <set>
 #include <vector>
+#include <string>
 
 /**
  * Headsign handler
