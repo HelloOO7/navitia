@@ -48,8 +48,8 @@ EdPersistor::EdPersistor(const std::string& connection_string, const bool is_osm
     std::unique_ptr<pqxx::connection> conn;
     try {
         conn = std::make_unique<pqxx::connection>(connection_string);
-    } catch (const pqxx::pqxx_exception& e) {
-        throw navitia::exception(e.base().what());
+    } catch (const pqxx::failure& e) {
+        throw navitia::exception(e.what());
     }
 
     pqxx::work work(*conn, "loading params");

@@ -183,10 +183,10 @@ void Data::load_disruptions(const std::string& database,
         disruption_error = true;
         throw navitia::data::disruptions_broken_connection("Unable to connect to disruptions database: "
                                                            + std::string(ex.what()));
-    } catch (const pqxx::pqxx_exception& ex) {
-        LOG4CPLUS_ERROR(logger, "Disruptions loading error: " << std::string(ex.base().what()));
+    } catch (const pqxx::failure& ex) {
+        LOG4CPLUS_ERROR(logger, "Disruptions loading error: " << std::string(ex.what()));
         disruption_error = true;
-        throw navitia::data::disruptions_loading_error("Disruptions loading error: " + std::string(ex.base().what()));
+        throw navitia::data::disruptions_loading_error("Disruptions loading error: " + std::string(ex.what()));
     } catch (const std::exception& ex) {
         LOG4CPLUS_ERROR(logger, "Disruptions loading error: " << std::string(ex.what()));
         disruption_error = true;

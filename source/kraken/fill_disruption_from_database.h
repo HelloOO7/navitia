@@ -34,7 +34,7 @@ www.navitia.io
 #include "type/chaos.pb.h"
 #include "make_disruption_from_chaos.h"
 
-#include <pqxx/result.hxx>
+#include <pqxx/result>
 #include <boost/property_tree/json_parser.hpp>
 
 #include <string>

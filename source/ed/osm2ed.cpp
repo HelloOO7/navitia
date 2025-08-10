@@ -295,7 +295,7 @@ const Admin* OSMCache::find_admin_in_cities(const double lon, const double lat) 
     this->cities_db_calls++;
 
     pqxx::work work(*cities_db);
-    pqxx::result result = work.exec(request);
+    pqxx::result result = work.exec(request.str());
 
     const Admin* containing_admin = nullptr;
     for (const auto& it : result) {
@@ -1196,7 +1196,7 @@ int osm2ed(int argc, const char** argv) {
         cities_cnx = {vm["cities-connection-string"].as<std::string>()};
     }
 
-    const bool use_cities = cities_cnx;
+    const bool use_cities = !!cities_cnx;
 
     po::notify(vm);
     const ed::connectors::PoiTypeParams poi_params(json_poi_types);
