@@ -38,7 +38,7 @@ www.navitia.io
 #include "type/type_interfaces.h"
 #include "utils/logger.h"
 
-#include <boost/spirit/include/phoenix.hpp>
+#include <boost/phoenix.hpp>
 #include <boost/spirit/include/qi.hpp>
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;

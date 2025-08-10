@@ -44,7 +44,7 @@ www.navitia.io
 #include "valgrind/callgrind.h"
 #endif
 #include <boost/program_options.hpp>
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 
 #include <fstream>
 #include <random>
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
     logger_raptor.setLogLevel(log4cplus::WARN_LOG_LEVEL);
 
     std::cout << "Launching benchmark " << std::endl;
-    boost::progress_display show_progress(requests.size());
+    boost::timer::progress_display show_progress(requests.size());
     int nb_reponses = 0, nb_journeys = 0;
     {
         Timer total_compute_timer("Total computing time");

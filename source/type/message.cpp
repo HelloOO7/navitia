@@ -684,7 +684,7 @@ boost::optional<RailSection> try_make_rail_section(
         blockeds.push_back(blocked_stop_area);
     }
 
-    if (line_uri == nullptr && routes_uris.empty()) {
+    if (!line_uri && routes_uris.empty()) {
         LOG4CPLUS_WARN(logger, "Rejected rail section with no line and empty routes.");
         return boost::none;
     }

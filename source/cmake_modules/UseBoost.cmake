@@ -9,10 +9,6 @@ find_package(Boost 1.55.0 COMPONENTS unit_test_framework thread regex
     serialization date_time filesystem system regex chrono iostreams
     program_options REQUIRED)
 
-#boost 1.53/1.54 bugs with local datetime...
-#see http://stackoverflow.com/questions/15234527/boost-1-53-local-date-time-compiler-error-with-std-c0x
-add_definitions(-DBOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
-
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories("${Boost_INCLUDE_DIRS}")
 
@@ -48,8 +44,16 @@ if ("${Boost_VERSION}" MATCHES "^[0-9]+$")
     if("${Boost_VERSION}" GREATER 106900 OR "${Boost_VERSION}" EQUAL 106900)
         add_definitions(-DBOOST_MATH_DISABLE_STD_FPCLASSIFY)
     endif()
+    if("${Boost_VERSION}" GREATER_EQUAL 105300 AND "${Boost_VERSION}" LESS 105500)
+        add_definitions(-DBOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
+    endif()
 else()
     if("${Boost_VERSION}" VERSION_GREATER_EQUAL 1.69.0)
         add_definitions(-DBOOST_MATH_DISABLE_STD_FPCLASSIFY)
+    endif()
+    if("${Boost_VERSION}" VERSION_GREATER_EQUAL 1.53.0 AND "${Boost_VERSION}" VERSION_LESS_EQUAL 1.54.0)
+        #boost 1.53/1.54 bugs with local datetime...
+        #see http://stackoverflow.com/questions/15234527/boost-1-53-local-date-time-compiler-error-with-std-c0x
+        add_definitions(-DBOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
     endif()
 endif()

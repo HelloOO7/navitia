@@ -36,7 +36,7 @@ www.navitia.io
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/program_options.hpp>
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 #ifdef __BENCH_WITH_CALGRIND__
 #include "valgrind/callgrind.h"
 #endif
@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
     RAPTOR router(data);
 
     std::cout << "On lance le benchmark de l'algo " << std::endl;
-    boost::progress_display show_progress(demands.size());
+    boost::timer::progress_display show_progress(demands.size());
     Timer t("Calcul avec l'algorithme ");
     // ProfilerStart("bench.prof");
     int nb_reponses = 0;

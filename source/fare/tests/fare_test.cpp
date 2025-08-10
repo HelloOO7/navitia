@@ -38,8 +38,7 @@ www.navitia.io
 #include <boost/test/unit_test.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_lit.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/phoenix.hpp>
 
 struct logger_initialized {
     logger_initialized() { navitia::init_logger(); }

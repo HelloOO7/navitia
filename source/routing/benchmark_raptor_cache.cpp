@@ -36,7 +36,7 @@ www.navitia.io
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/program_options.hpp>
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 #ifdef __BENCH_WITH_CALGRIND__
 #include "valgrind/callgrind.h"
 #endif
@@ -57,7 +57,7 @@ struct Demand {
     nt::AccessibiliteParams accessibilite_params;
 };
 
-static void compute(std::vector<Demand> demands, boost::progress_display& show_progress, const type::Data& data) {
+static void compute(std::vector<Demand> demands, boost::timer::progress_display& show_progress, const type::Data& data) {
     std::shuffle(demands.begin(), demands.end(), std::mt19937(std::random_device()()));
     std::vector<const CachedNextStopTime*> results;
     for (auto demand : demands) {
@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 
     RAPTOR router(data);
 
-    boost::progress_display show_progress(demands.size() * nb_threads);
+    boost::timer::progress_display show_progress(demands.size() * nb_threads);
     {
         Timer t("Build raptor cache ");
         std::vector<std::thread> threads;
