@@ -38,3 +38,5 @@ source/compile_commands.json
 dev
 docker_build
 .vscode
+/build_*
+/run

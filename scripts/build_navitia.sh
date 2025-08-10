@@ -49,6 +49,7 @@ ntfs_data_dir=
 osm_file=
 
 install_dependencies=1
+debug_build=0
 
 clean_apt=
 
@@ -72,10 +73,11 @@ OPTIONS:
    -o                  osm file
    -n                  do not install dependencies
    -c                  if OS is Debian, clean the APT configuration (repository)
+   -d                  use debug build directory (build)
 EOF
 }
 
-while getopts “hp:g:o:nc” OPTION
+while getopts “hp:g:o:nc:d” OPTION
 do
      case "$OPTION" in
          h)
@@ -96,6 +98,9 @@ do
              ;;
          c)
              clean_apt=true
+             ;;
+         d)
+             debug_build=1
              ;;
          ?)
              usage
@@ -120,8 +125,8 @@ then
     echo "getting ntfs paris data from data.navitia.io"
     # Note, here is a link to a dataset of the paris region.
     # You can explore https://navitia.opendatasoft.com if you want another dataset
-    wget -P /tmp https://navitia.opendatasoft.com/explore/dataset/fr-idf/files/dde578e47118b8c6f8885d75f18a504a/download/
-    unzip -d /tmp/ntfs /tmp/index.html
+    wget -P /tmp https://eu.ftp.opendatasoft.com/stif/GTFS/IDFM-gtfs.zip
+    unzip -d /tmp/ntfs /tmp/IDFM-gtfs.zip
     ntfs_data_dir=/tmp/ntfs
 
     echo "getting paris osm data from metro.teczno.com"
@@ -151,18 +156,19 @@ git submodule update --init --recursive
 if [ -n "$install_dependencies" ]
 then
     echo "** installing all dependencies"
-    sudo apt-get install -y g++ cmake liblog4cplus-dev libzmq-dev libosmpbf-dev libboost-all-dev libgoogle-perftools-dev libprotobuf-dev python-pip libproj-dev protobuf-compiler libgeos-3.5.0 clang-format-6.0 2to3
+    sudo apt-get install -y g++ cmake liblog4cplus-dev libzmq3-dev libosmpbf-dev libboost-all-dev libgoogle-perftools-dev libprotobuf-dev python3-pip libproj-dev protobuf-compiler libgeos-dev clang-format 2to3
 
-    postgresql_package='postgresql-9.3'
-    postgresql_postgis_package='postgis postgresql-9.3-postgis-2.1 postgresql-9.3-postgis-scripts'
+    postgresql_package='postgresql-16'
+    postgresql_postgis_package='postgis postgresql-16-postgis-3 postgresql-16-postgis-scripts'
     distrib=`lsb_release -si`
     version=`lsb_release -sr`
-    pqxx_package='libpqxx3-dev'
+    pqxx_package='libpqxx-dev'
 
     # Fix Ubuntu 15.04 package
     if [ "$distrib" = "Ubuntu" -a "$version" = "15.04" ]; then
       postgresql_package='postgresql-9.4'
       postgresql_postgis_package='postgis postgresql-9.4-postgis-2.1 postgresql-9.4-postgis-scripts'
+      pqxx_package='libpqxx3-dev'
     elif [ "$distrib" = "Ubuntu" -a "$version" = "16.04" ]; then
       postgresql_package='postgresql-9.5'
       postgresql_postgis_package='postgis postgresql-9.5-postgis-2.2 postgresql-9.5-postgis-scripts'
@@ -173,8 +179,6 @@ then
       wget -P /tmp/ http://fr.archive.ubuntu.com/ubuntu/pool/universe/l/log4cplus/liblog4cplus-1.1-9_1.1.2-3.2_amd64.deb
       wget -P /tmp/ http://fr.archive.ubuntu.com/ubuntu/pool/universe/l/log4cplus/liblog4cplus-dev_1.1.2-3.2_amd64.deb
       sudo dpkg -i /tmp/liblog4cplus-1.1-9_1.1.2-3.2_amd64.deb  /tmp/liblog4cplus-dev_1.1.2-3.2_amd64.deb
-
-      pqxx_package='libpqxx-dev'
     fi
 
     if [ "$distrib" = "Debian" ] && grep -q '^7\.' /etc/debian_version; then
@@ -194,17 +198,20 @@ then
 
     # then you need to install all python dependencies: ::
 
-    sudo pip install -r "$navitia_dir"/source/jormungandr/requirements.txt
-    sudo pip install -r "$navitia_dir"/source/tyr/requirements.txt
+#    sudo pip install -r "$navitia_dir"/source/jormungandr/requirements.txt
+#    sudo pip install -r "$navitia_dir"/source/tyr/requirements.txt
 fi
 
 #the build procedure is explained is the install documentation
 echo "** building navitia"
-navitia_build_dir="$navitia_dir"/build_release
-mkdir -p "$navitia_build_dir" && cd "$navitia_build_dir"
-cmake -DCMAKE_BUILD_TYPE=Release ../source
-make -j$(($(grep -c '^processor' /proc/cpuinfo)+1))
-
+if [ "$debug_build" -eq 1 ]; then
+    navitia_build_dir="$navitia_dir"/build
+else
+    navitia_build_dir="$navitia_dir"/build_release
+    mkdir -p "$navitia_build_dir" && cd "$navitia_build_dir"
+    cmake -DCMAKE_BUILD_TYPE=Release ../source
+    make -j$(($(grep -c '^processor' /proc/cpuinfo)+1))
+fi
 
 #=======================
 #Setting up the database
@@ -280,14 +287,16 @@ cd -
 
 # ** filling up the database **
 
+ed_conn_string="host=localhost user=$db_owner dbname=$kraken_db_name password=$kraken_db_user_password"
+
 ## we need to import the ntfs data
-"$navitia_build_dir"/ed/fusio2ed -i "$ntfs_data_dir" --connection-string="host=localhost user=$db_owner dbname=$kraken_db_name password=$kraken_db_user_password"
+"$navitia_build_dir"/ed/fusio2ed -i "$ntfs_data_dir" --connection-string="$ed_conn_string"
 
 ## we need to import the osm data
-"$navitia_build_dir"/ed/osm2ed -i "$osm_file" --connection-string="host=localhost user=$db_owner dbname=$kraken_db_name password=$kraken_db_user_password"
+"$navitia_build_dir"/ed/osm2ed -i "$osm_file" --connection-string="$ed_conn_string"
 
 ## then we export the database into kraken's custom file format
-"$navitia_build_dir"/ed/ed2nav -o "$run_dir"/data.nav.lz4 --connection-string="host=localhost user=$db_owner dbname=$kraken_db_name password=$kraken_db_user_password"
+"$navitia_build_dir"/ed/ed2nav -o "$run_dir"/data.nav.lz4 --connection-string="$ed_conn_string"
 
 #========
 # Running
