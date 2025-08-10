@@ -100,7 +100,10 @@ struct TransportationModeFilter {
 };
 
 struct SpeedDistanceCombiner
-    : public std::binary_function<navitia::time_duration, navitia::time_duration, navitia::time_duration> {
+#if __cplusplus < 201103
+    : public std::binary_function<navitia::time_duration, navitia::time_duration, navitia::time_duration>
+#endif
+{
     // speed factor compared to the default speed of the transportation mode
     // speed_factor = 2 means the speed is twice the default speed of the given transportation mode
     // inv_speed_factor = 1 / speed_factor to avoid division
